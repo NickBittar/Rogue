@@ -1,0 +1,48 @@
+Ideas
+	Ability: lifesteal
+	Ability: piercing shots
+	Upgrade: Dash	
+				- duration
+				- cooldown
+				- I frames
+	Upgrade: Gun	
+				- range
+				- damage
+				- max bullets
+				- fire rate
+	Upgrade: Player
+				- max HP
+				- HP regen (stand still?)
+				- movement speed
+				- luck
+
+	Enemies: Varied enemies
+				- variant HP
+				- variant gold
+				- variant XP
+				- varient size
+				- varient movement speed
+	Enemies: Boss enemies
+	Misc: Random Pick ups
+				- Health
+				- Weapon
+				- double XP
+				- double gold 
+	Misc: Quests (Challenges)
+				- Hold down shift for 30 sec
+				- Don't move for x sec
+
+TODO
+[ ]	Add item shop
+[ ]	Add level system
+[ ]	Add start screen
+[ ]	Add options screen
+[ ]	Add restart game
+[X]	Add enemy pathfinding (kind of)
+[ ]	Add sounds
+[ ]	Add upgrades
+
+Backlog
+[ ]	Add music
+[ ]	Add graphics
+[ ]	Add leaderboards

@@ -1,0 +1,21 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="rogue.css" />
+	</head>
+	<body>
+		<div class="wrapper">
+			<div class="container">
+				<canvas id="cnv" class="canvas" width="800" height="600"></canvas>
+			</div>
+			<div class="controls">
+				<button id="pause" onClick="game.paused = !game.paused;">pause</button>
+				
+				<button id="frame-adavance" onClick="tick();draw();game.frame++;">frame++</button>
+			</div>
+			<div id="controller-info" class="controller">
+			</div>
+		</div>
+	</body>
+</html>
+<script type="text/javascript" src="classes.js"></script>
+<script type="text/javascript" src="rogue.js"></script>

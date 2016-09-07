@@ -1,0 +1,33 @@
+﻿* {
+	margin: 0;
+	padding: 0;
+}
+body {
+	font-family: helvetica;
+	background: #e3e3e3;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.wrapper {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+.container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background: #f3f3f3;
+	box-shadow: 0px 3px 6px grey;
+}
+canvas {
+	outline: 1px solid;
+	background: black;
+}
+.controls {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
