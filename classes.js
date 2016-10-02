@@ -8,7 +8,7 @@ class Game {
             debug: false,
             paused: false,
             state: '',
-            startTime: new Date(),
+            startTime: new Date(),  // TODO: Switch Dates to performance.now()
         };
         for (var attribute in base) {
             this[attribute] = base[attribute];
@@ -159,10 +159,14 @@ class Player {
                 bullets: [],
                 range: 200,
                 lastAttack: 0,
-                fireRate: 15,
+                fireRate: 10,
                 dmg: 1,
                 pierce: 1,
                 maxBullets: 3,
+                chargeStart: 0,
+                charge: 0,
+                charging: false,
+                firing: false,
             },
             hp: 100,
             maxHp: 100,
@@ -198,6 +202,18 @@ class Player {
         if (this.dx != 0 && this.dy != 0) {
             this.dx *= Math.sqrt(0.5);
             this.dy *= Math.sqrt(0.5);
+        }
+
+        // Player attack
+        if (this.controls.attack) {
+            this.attack.charging = true;
+            this.attack.firing = false;
+            if (this.attack.charge < 3) {
+                this.attack.charge += 0.05;
+            }
+        } else if(this.attack.charging) {
+            this.attack.charging = false;
+            this.attack.firing = true;
         }
 
         // Player sprint ability
@@ -241,7 +257,7 @@ class Player {
 }
 
 class Bullet {
-    constructor(game) {
+    constructor(game, charge) {
         let base = {
             x: 0,
             y: 0,
@@ -257,6 +273,7 @@ class Bullet {
             targetY: 0,
             hp: 1,
             dmg: 1,
+            pierce: 1,
         };
         for (let attribute in base) {
             this[attribute] = base[attribute];
@@ -264,11 +281,13 @@ class Bullet {
 
         this.game = game;
 
-        this.hp = game.player.attack.pierce;
-        this.dmg = game.player.attack.dmg;
+        this.hp = game.player.attack.pierce * (Math.floor(charge) + 1);
+        this.dmg = game.player.attack.dmg * (charge + 1);
+        this.width *= (charge + 1);
+        this.height *= (charge + 1);
 
-        this.x = game.player.x + game.player.width / 2;
-        this.y = game.player.y + game.player.height / 2;
+        this.x = game.player.x + game.player.width / 2 - this.width/2;
+        this.y = game.player.y + game.player.height / 2 - this.height/2;
         this.targetX = game.cursor.x - game.map.x;
         this.targetY = game.cursor.y - game.map.y;
         let distX = this.targetX - this.x;

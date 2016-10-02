@@ -25,12 +25,6 @@ var game = new Game();
 var player;
 var map;
 init();
-game.paused = true;
-/* CONTROLS */
-
-
-
-/* END CONTROLS */
 
 function init() {
     game.cnv = document.getElementById('cnv');
@@ -125,9 +119,11 @@ function loop() {
 }
 function tick() {
     // Add bullets
-    if (game.player.controls.attack && player.attack.bullets.length < player.attack.maxBullets && game.frame > player.attack.lastAttack+player.attack.fireRate) {
-        player.attack.bullets.push(new Bullet(game));
+    if (game.player.attack.firing && player.attack.bullets.length < player.attack.maxBullets && game.frame > player.attack.lastAttack + player.attack.fireRate) {
+        player.attack.bullets.push(new Bullet(game, game.player.attack.charge));
         player.attack.lastAttack = game.frame;
+        game.player.attack.firing = false;
+        game.player.attack.charge = 0;
     }
     // Bullet updates
     for (let i = 0; i < player.attack.bullets.length; i++) {
@@ -288,6 +284,7 @@ function draw() {
         game.ctx.fillText('player.b: ' + (player.y + player.height).toFixed(2), 10, lineHeight * line++);
         game.ctx.fillText('map.x: ' + map.x.toFixed(2), 10, lineHeight * line++);
         game.ctx.fillText('map.y: ' + map.y.toFixed(2), 10, lineHeight * line++);
+        game.ctx.fillText('attack.charge: ' + player.attack.charge, 10, lineHeight * line++);
     }
 
     // HUD
