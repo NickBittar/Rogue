@@ -65,7 +65,7 @@ function upgrade(e) {
 
     document.getElementById('level-up-popup').classList.remove('visible');
     document.getElementById('level-up-popup').classList.add('invisible');
-    setTimeout(function () { game.upgradesVisible = false; game.pause(false); }, 500);
+    setTimeout(function () { game.screensVisible.splice(game.screensVisible.indexOf('Upgrades'), 1); game.pause(false); }, 500);
 }
 
 function init() {
@@ -106,6 +106,9 @@ function keyDownHandler(e) {
         case game.controls.down:
             player.controls.down = true;
             break;
+        case game.controls.use:
+            player.controls.use = true;
+            break;
         case game.controls.sprint:
             player.controls.sprint = true;
             break;
@@ -136,6 +139,9 @@ function keyUpHandler(e) {
             break;
         case game.controls.down:
             game.player.controls.down = false;
+            break;
+        case game.controls.use:
+            player.controls.use = false;
             break;
         case game.controls.sprint:
             game.player.controls.sprint = false;
@@ -235,12 +241,19 @@ function tick() {
     player.update();
     map.update();
 
+    // Player Level Up
     if (player.xp >= player.nextLevelUp) {
+        game.screensVisible.push('Upgrades');
         game.pause(true);
-        game.upgradesVisible = true;
         player.level++;
-        player.nextLevelUp += 10;
+        player.nextLevelUp += 100;
         setTimeout(levelUp, 300);
+    }
+
+    // Player shop
+    if (player.controls.use && checkIntersection(player, map.shop)) {
+        map.shop.show();
+        game.pause(true);
     }
 }
 function checkMapObjectCollisions(entity) {
@@ -273,6 +286,9 @@ function draw() {
     // Draw Map
     game.ctx.fillStyle = '#f3f3f3';
     game.ctx.fillRect(map.x, map.y, map.width, map.height);
+
+    // Draw map background
+    game.map.shop.draw(game.ctx);
 
     if (game.debug) {
         game.ctx.strokeStyle = '#e8e8e8';
@@ -331,7 +347,6 @@ function draw() {
     game.ctx.fillStyle = '#222';
     map.objects.forEach(obj => game.ctx.fillRect(obj.x + map.x, obj.y + map.y, obj.width, obj.height));
 
-    game.map.shop.draw(game.ctx);
 
     if (game.debug) {
         game.ctx.fillStyle = '#289';

@@ -11,14 +11,16 @@
                 <h1>Level Up</h1>
                 <hr /><br />
                 <h3>Choose one upgrade</h3>
+                <br />
                 <div id="level-up-choices" class="level-up-choices">
 
                 </div>
             </div>
-            <div id="shop-popup" class="popup level-up-popup visible">
-                <h1>Shop</h1>
+            <div id="shop-popup" class="popup level-up-popup invisible">
+                <h1>Shop</h1><div class="close-btn" onclick="game.map.shop.hide();">X</div>
                 <hr /><br />
-                <h3>Spend your gold</h3><br />
+                <div class="shop-header"><h3>Spend your gold</h3><h3 id="shop-gold">You Have 0 gold</h3></div>
+                <br />
                 <div id="shop-choices" class="shop-choices">
 
                 </div>
@@ -45,6 +47,10 @@
                     <div id="control-right" class="control-input"></div>
                 </div>
                 <h3>Actions</h3>
+                <div class="controls-control">
+                    <div class="control-label">Interact</div>
+                    <div id="control-use" class="control-input"></div>
+                </div>
                 <div class="controls-control">
                     <div class="control-label">Sprint</div>
                     <div id="control-sprint" class="control-input"></div>

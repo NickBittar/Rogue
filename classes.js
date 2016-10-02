@@ -9,8 +9,7 @@ class Game {
             paused: false,
             state: '',
             startTime: new Date(),  // TODO: Switch Dates to performance.now()
-            optionsVisible: false,
-            upgradesVisible: false,
+            screensVisible: [],
         };
         for (var attribute in base) {
             this[attribute] = base[attribute];
@@ -26,7 +25,7 @@ class Game {
 
     pause(option) {
         if (option === undefined) {
-            if (!game.upgradesVisible && !game.optionsVisible) {
+            if (this.screensVisible.length === 0) {
                 game.paused = !game.paused;
                 return;
             }
@@ -34,7 +33,7 @@ class Game {
         if (option === true) {
             game.paused = true;
         } else if (option === false) {
-            if (!game.upgradesVisible && !game.optionsVisible) {
+            if (this.screensVisible.length === 0) {
                 game.paused = false;
             }
         }
@@ -49,7 +48,8 @@ class Controls {
 			left: 	65,	// A
 			up: 	87, // W
 			right: 	68,	// D
-			down: 	83,	// S
+			down:   83,	// S
+            use:    69, // E  
 			sprint: 16,	// Shift
 			shoot: 	32,	// Space
 			pause:	27,	// Esc
@@ -98,6 +98,9 @@ class Controls {
             case 'right':
                 this.right = e.keyCode;
                 break;
+            case 'use':
+                this.use = e.keyCode;
+                break;
             case 'sprint':
                 this.sprint = e.keyCode;
                 break;
@@ -117,6 +120,7 @@ class Controls {
         document.getElementById('control-left').textContent = this.getDisplayKey(this.left);
         document.getElementById('control-down').textContent = this.getDisplayKey(this.down);
         document.getElementById('control-right').textContent = this.getDisplayKey(this.right);
+        document.getElementById('control-use').textContent = this.getDisplayKey(this.use);
         document.getElementById('control-sprint').textContent = this.getDisplayKey(this.sprint);
         document.getElementById('control-shoot').textContent = this.getDisplayKey(this.shoot);
     }
@@ -134,12 +138,12 @@ class Controls {
         if (popup.classList.contains('visible')) {
             popup.classList.remove('visible');
             popup.classList.add('invisible');
-            setTimeout(() => { if (popup.classList.contains('invisible')) game.optionsVisible = false; game.pause(false);}, 300);
+            setTimeout(() => { if (popup.classList.contains('invisible')) game.screensVisible.splice(game.screensVisible.indexOf('Options'), 1); game.pause(false);}, 300);
         } else {
             popup.classList.remove('invisible');
             popup.classList.add('visible');
+            game.screensVisible.push('Options');
             game.pause(true);
-            game.optionsVisible = true;
         }
     }
 }
@@ -169,6 +173,7 @@ class Shop {
                     cost: 100,
                 },
             ],
+            
         }
         for (let attribute in base) {
             this[attribute] = base[attribute];
@@ -177,12 +182,26 @@ class Shop {
         this.updateItems();
     }
 
+    show() {
+        this.game.screensVisible.push('Shop');
+        document.getElementById('shop-popup').classList.remove('invisible');
+        document.getElementById('shop-popup').classList.add('visible');
+        document.getElementById('shop-gold').textContent = 'You have ' + game.player.gold + ' gold';
+    }
+
+    hide() {
+        game.screensVisible.splice(game.screensVisible.indexOf('Shop'), 1);
+        document.getElementById('shop-popup').classList.remove('visible');
+        document.getElementById('shop-popup').classList.add('invisible');
+        setTimeout(() => { if (document.getElementById('shop-popup').classList.contains('invisible')) game.screensVisible.splice(game.screensVisible.indexOf('Shop'), 1); game.pause(false); }, 500);
+    }
+
     updateItems() {
         let html = '';
         for(let item of this.items) {
             html +=
                 `
-                <div class ="item-choice" data-item="${item.name}">
+                <div class ="item-choice" data-item="${item.name}" onclick="game.map.shop.buy(event, this);">
                     <div class ="item-choice-name">${item.name}</div>
                     <div class ="item-choice-desc">${item.desc}</div>
                     <div class ="item-choice-cost">${item.cost} gold</div>
@@ -192,6 +211,16 @@ class Shop {
         document.getElementById('shop-choices').innerHTML = html;
     }
 
+    buy(e, choice) {
+        const item = this.items.find(i => i.name === choice.getAttribute('data-item'));
+        if (item.cost > game.player.gold) {
+            // Not enough money
+        } else {
+            game.player.items.push(item);
+            game.player.gold -= item.cost;
+            document.getElementById('shop-gold').textContent = 'You have ' + game.player.gold + ' gold';
+        }
+    }
 
     draw(ctx) {
         ctx.fillStyle = this.color;
@@ -217,6 +246,7 @@ class Player {
                 up: false,
                 right: false,
                 down: false,
+                use: false,
                 sprint: false,
                 attack: false,
 
@@ -253,6 +283,7 @@ class Player {
             gold: 0,
             kills: 0,
             luck: 100,
+            items: [],
         };
         for (let attribute in base) {
             this[attribute] = base[attribute];
@@ -415,8 +446,8 @@ class Bullet {
 
         this.x = game.player.x + game.player.width / 2 - this.width/2;
         this.y = game.player.y + game.player.height / 2 - this.height/2;
-        this.targetX = game.cursor.x - game.map.x;
-        this.targetY = game.cursor.y - game.map.y;
+        this.targetX = game.cursor.x - game.map.x - this.width/2;
+        this.targetY = game.cursor.y - game.map.y - this.height/2;
         let distX = this.targetX - this.x;
         let distY = this.targetY - this.y;
         let dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
