@@ -31,18 +31,19 @@ canvas {
 	justify-content: center;
 	align-items: center;
 }
-.controls-popup {
+.popup {
     position: absolute;
     display: flex;
-    flex-direction: column;
-    width: 500px;
-    height: 450px;
     box-shadow: 0px 3px 6px rgba(0,0,0,0.5);
-    background: #fafafa;
     box-sizing: border-box;
     padding: 5%;
     transition: all 0.3s ease-out;
-    transform: translateX(-100vw);
+}
+.controls-popup {
+    flex-direction: column;
+    width: 500px;
+    height: 450px;
+    background: #fafafa;
 }
 .controls-control {
     display: flex;
@@ -91,24 +92,18 @@ canvas {
     opacity: 1;
     pointer-events: all;
 }
-.controls-popup.visible {
-    transform: translateX(0);
+.controls-popup.invisible {
+    transform: translateX(-100vw);
 }
 .invisible {
     opacity: 0;
     pointer-events: none;
 }
 .level-up-popup {
-    display: flex;
     flex-direction: column;
-    box-sizing: border-box;
-    padding: 32px;
     width: 700px;
     height: 500px;
-    position: absolute;
     background: #fafafa;
-    box-shadow: 0px 3px 6px rgba(0,0,0,0.5);
-    transition: all 0.3s ease;
 }
 .level-up-popup.invisible {
     transform: translateY(-100vh);
@@ -135,5 +130,30 @@ canvas {
     color: white;
 }
 .upgrade-choice:active {
+    background: #aaa;
+}
+.shop-popup {
+    background: #fafafa;
+}
+.shop-choices {
+    display: flex;
+    flex-direction: column;
+    outline: 1px solid;
+    padding: 16px;
+    box-sizing: border-box;
+}
+.item-choice {
+    display: flex;
+    flex-direction: column;
+    outline: 1px solid;
+    padding: 8px;
+    margin: 10px 0px;
+    cursor: pointer;
+}
+.item-choice:hover {
+    background: #333;
+    color: white;
+}
+.item-choice:active {
     background: #aaa;
 }

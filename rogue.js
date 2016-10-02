@@ -331,6 +331,8 @@ function draw() {
     game.ctx.fillStyle = '#222';
     map.objects.forEach(obj => game.ctx.fillRect(obj.x + map.x, obj.y + map.y, obj.width, obj.height));
 
+    game.map.shop.draw(game.ctx);
+
     if (game.debug) {
         game.ctx.fillStyle = '#289';
         game.ctx.font = "16px Helvetica";

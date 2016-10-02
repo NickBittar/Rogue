@@ -144,6 +144,61 @@ class Controls {
     }
 }
 
+class Shop {
+    constructor(game) {
+        let base = {
+            x: 300,
+            y: 300,
+            width: 100,
+            height: 100,
+            color: '#652',
+            items: [
+                {
+                    name: 'Sprint',
+                    desc: 'Gain the ability to dash quickly to get around the map and to avoid enemies.',
+                    cost: 200,
+                },
+                {
+                    name: 'Charge',
+                    desc: 'Allows you to hold your attack button to charge up your next shot.  A charged shot is bigger, stronger, and can pierce through multiple enemies.',
+                    cost: 300,
+                },
+                {
+                    name: 'Test Item',
+                    desc: 'pls don\'t buy, only testing.',
+                    cost: 100,
+                },
+            ],
+        }
+        for (let attribute in base) {
+            this[attribute] = base[attribute];
+        }
+        this.game = game;
+        this.updateItems();
+    }
+
+    updateItems() {
+        let html = '';
+        for(let item of this.items) {
+            html +=
+                `
+                <div class ="item-choice" data-item="${item.name}">
+                    <div class ="item-choice-name">${item.name}</div>
+                    <div class ="item-choice-desc">${item.desc}</div>
+                    <div class ="item-choice-cost">${item.cost} gold</div>
+                </div>
+                `;
+        }
+        document.getElementById('shop-choices').innerHTML = html;
+    }
+
+
+    draw(ctx) {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x + this.game.map.x, this.y + this.game.map.y, this.width, this.height);
+    }
+}
+
 class Player {
     constructor(game) {
         let base = {
@@ -404,6 +459,7 @@ class Map {
             this[attribute] = base[attribute];
         }
         this.game = game;
+        this.shop = new Shop(game);
     }
     update() {
         // Set map/camera offsets
