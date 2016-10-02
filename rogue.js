@@ -306,6 +306,12 @@ function draw() {
         game.ctx.strokeRect(player.x + map.x, player.y + map.y, player.width, player.height);
     }
 
+    if (player.attack.charge === player.attack.chargeCapacity) {
+        game.ctx.strokeStyle = '#ee2';
+        game.ctx.lineWidth = 8;
+        game.ctx.strokeRect(player.x + map.x, player.y + map.y, player.width, player.height);
+    }
+
 
     game.ctx.fillStyle = player.color;
     game.ctx.fillRect(player.x + map.x, player.y + map.y, player.width, player.height);
