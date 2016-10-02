@@ -359,6 +359,9 @@ function draw() {
     game.ctx.strokeStyle = '#eee';
     game.ctx.strokeText(player.xp + ' XP', 650, 70);
 
+    game.ctx.fillText('Level ' + player.level, 650, 180);
+    game.ctx.strokeText('Level ' + player.level, 650, 180);
+
     game.ctx.strokeStyle = '#222';
     game.ctx.fillStyle = '#ffeb3b';
     game.ctx.fillText(player.gold + ' gold', 650, 40);

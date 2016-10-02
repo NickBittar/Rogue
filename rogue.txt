@@ -37,11 +37,11 @@ TODO
 [ ]	Add item shop
 [X]	Add level system
 [ ]	Add start screen
-[ ]	Add options screen
+[X]	Add options screen
 [ ]	Add restart game
 [X]	Add enemy pathfinding (kind of)
 [ ]	Add sounds
-[ ]	Add upgrades
+[X]	Add upgrades
 
 Backlog
 [ ]	Add music
