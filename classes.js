@@ -23,6 +23,24 @@ class Game {
     }
 
 }
+class Controls {
+	constructor() {
+		let base = {
+			left: 	65,	// A
+			up: 	87, // W
+			right: 	68,	// D
+			down: 	83,	// S
+			sprint: 16,	// Shift
+			shoot: 	32,	// Space
+			pause:	27,	// Esc
+			
+		};
+        for (var attribute in base) {
+            this[attribute] = base[attribute];
+        }
+	}
+	
+}
 
 class Player {
     constructor(game) {

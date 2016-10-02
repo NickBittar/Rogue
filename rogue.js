@@ -22,20 +22,18 @@ function controllerCheck() {
 }
 
 var game = new Game();
-
-var player = new Player();
-var map = new Map();
-var cursor = new Cursor();
+var player;
+var map;
 init();
 function init() {
     game.cnv = document.getElementById('cnv');
     game.ctx = game.cnv.getContext('2d');
     game.fps = 60;
-    game.player = player;
-    game.map = map;
-    game.cursor = cursor;
+	game.controls = new Controls();
+    game.player = new Player();
+    game.map = new Map();
+    game.cursor = new Cursor();
     reset();
-    //generateMap();
 
     setInterval(loop, 1000 / game.fps);
 
@@ -44,11 +42,11 @@ function init() {
     document.addEventListener('mousemove', mouseMoveHandler, false);
 }
 function reset() {
-    player = new Player(game);
-    map = new Map(game);
     game.reset();
-    game.player = player;
-    game.map = map;
+    game.player = new Player(game);
+    game.map = new Map(game);
+    player = game.player;
+    map = game.map;
 }
 function keyDownHandler(e) {
     e.preventDefault();
@@ -90,33 +88,32 @@ function keyUpHandler(e) {
     switch (e.keyCode) {
         case 65:	// A
         case 37:	// Left
-            player.controls.left = false;
+            game.player.controls.left = false;
             break;
         case 87:	// W
         case 38:	// Up
-            player.controls.up = false;
+            game.player.controls.up = false;
             break;
         case 68:	// D
         case 39:	// Right
-            player.controls.right = false;
+            game.player.controls.right = false;
             break;
         case 83:	// S
         case 40:	// Down
-            player.controls.down = false;
+            game.player.controls.down = false;
             break;
         case 16:	// Shift
-            player.controls.sprint = false;
+            game.player.controls.sprint = false;
             break;
         case 32:	// Space
-            player.controls.attack = false;
+            game.player.controls.attack = false;
             break;
-
     }
 }
 function mouseMoveHandler(e) {
-    cursor.x = e.x - game.cnv.offsetLeft;
-    cursor.y = e.y - game.cnv.offsetTop;
-    cursor.buttons = e.buttons;
+    game.cursor.x = e.x - game.cnv.offsetLeft;
+    game.cursor.y = e.y - game.cnv.offsetTop;
+    game.cursor.buttons = e.buttons;
 }
 function loop() {
     if (game.paused) return;
@@ -127,20 +124,9 @@ function loop() {
     if (new Date().getTime() - start > 16) 
         console.log(new Date().getTime() - start);
 }
-function generateMap() {
-    map.objects = [];
-    for (let i = 0; i < 20; i++) {
-        map.objects.push({
-            x: Math.random() * map.width,
-            y: Math.random() * map.height,
-            w: Math.random() * 150 + 20,
-            h: Math.random() * 150 + 20,
-        });
-    }
-}
 function tick() {
     // Add bullets
-    if (player.controls.attack && player.attack.bullets.length < player.attack.maxBullets && game.frame > player.attack.lastAttack+player.attack.fireRate) {
+    if (game.player.controls.attack && player.attack.bullets.length < player.attack.maxBullets && game.frame > player.attack.lastAttack+player.attack.fireRate) {
         player.attack.bullets.push(new Bullet(game));
         player.attack.lastAttack = game.frame;
     }
