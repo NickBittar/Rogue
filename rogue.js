@@ -37,7 +37,7 @@ function init() {
     reset();
 
     setInterval(loop, 1000 / game.fps);
-
+    //draw();
     document.addEventListener('keydown', keyDownHandler, false);
     document.addEventListener('keyup', keyUpHandler, false);
     document.addEventListener('mousemove', mouseMoveHandler, false);
@@ -216,6 +216,7 @@ function checkMapObjectCollisions(entity) {
 }
 
 function draw() {
+    //requestAnimationFrame(draw);
     game.ctx.clearRect(0, 0, game.cnv.width, game.cnv.height);
 
     // Draw Map
