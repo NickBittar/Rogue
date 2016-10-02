@@ -159,7 +159,7 @@ class Player {
                 bullets: [],
                 range: 200,
                 lastAttack: 0,
-                fireRate: 10,
+                fireRate: 15,
                 dmg: 1,
                 pierce: 1,
                 maxBullets: 3,
@@ -167,10 +167,14 @@ class Player {
                 charge: 0,
                 charging: false,
                 firing: false,
+                chargeCapacity: 3,
+                chargeRate: 0.025,
             },
             hp: 100,
             maxHp: 100,
             xp: 0,
+            level: 0,
+            nextLevelUp: 10,
             gold: 0,
             kills: 0,
             luck: 100,
@@ -209,10 +213,10 @@ class Player {
         if (this.controls.attack) {
             this.attack.charging = true;
             this.attack.firing = false;
-            if (this.attack.charge < 3) {
-                this.attack.charge += 0.05;
+            if (this.attack.charge < this.attack.chargeCapacity) {
+                this.attack.charge += this.attack.chargeRate;
             } else {
-                this.attack.charge = 3;
+                this.attack.charge = this.attack.chargeCapacity;
             }
         } else if(this.attack.charging) {
             this.attack.charging = false;
@@ -256,6 +260,51 @@ class Player {
         if (this.y < 0) this.y = 0;
 
         checkMapObjectCollisions(this);
+    }
+
+    upgrade(choice) {
+        switch (choice) {
+            case 'Health Up':
+                this.hp += 10;
+                this.maxHp += 10;
+                break;
+            case 'Damage Up':
+                this.attack.dmg += 1;
+                break;
+            case 'Speed Up':
+                this.speed += 0.25;
+                break;
+            case 'Pierce Up':
+                this.attack.pierce += 1;
+                break;
+            case 'Fire Rate Up':
+                this.attack.fireRate -= 2;
+                break;
+            case 'Range Up':
+                this.attack.range += 10;
+                break;
+            case 'Charge Capacity Up':
+                this.attack.chargeCapacity += 1;
+                break;
+            case 'Charge Rate Up':
+                this.attack.chargeRate += 0.025;
+                break;
+            case 'Max Bullets Up':
+                this.attack.maxBullets += 1;
+                break;
+            case 'Luck Up':
+                this.luck += 1;
+                break;
+            case 'Dash Duration Up':
+                this.sprint.duration += 2;
+                break;
+            case 'Dash Cooldown Down':
+                this.sprint.cooldown -= 4;
+                break;
+            default:
+                console.warn('Unknown upgrade ' + choice);
+                break;
+        }
     }
 }
 

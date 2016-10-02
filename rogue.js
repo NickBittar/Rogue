@@ -26,6 +26,48 @@ var player;
 var map;
 init();
 
+function levelUp() {
+    const choices = document.getElementById('level-up-choices');
+    const allUpgrades = ['Health Up', 'Damage Up', 'Speed Up', 'Pierce Up', 'Fire Rate Up', 'Range Up', 'Charge Capacity Up', 'Charge Rate Up', 'Max Bullets Up', 'Luck Up', 'Dash Duration Up', 'Dash Cooldown Down'];
+    let upgrades = [];
+    for (let i = 0; i < 3; i++) {
+        let upgradeIndex = Math.floor(Math.random() * allUpgrades.length);
+        if (upgrades.includes(allUpgrades[upgradeIndex])) {
+            i--;
+            continue;
+        }
+        upgrades.push(allUpgrades[upgradeIndex]);
+    }
+    let html = '';
+    for(let upgrade of allUpgrades) {
+        html += `
+            <div class="upgrade-choice" data-upgrade="${upgrade}" onclick="upgrade(event)">
+            ${upgrade}
+            </div>
+            `;
+    }
+    choices.innerHTML = html;
+
+    document.getElementById('level-up-popup').classList.remove('invisible');
+    document.getElementById('level-up-popup').classList.add('visible');
+}
+
+function upgrade(e) {
+    const choices = document.querySelectorAll('.upgrade-choice');
+    for(let c of choices) {
+        c.onclick = null;
+    }
+    
+    const choice = e.target.getAttribute('data-upgrade');
+    console.log(choice);
+    
+    game.player.upgrade(choice)
+
+    document.getElementById('level-up-popup').classList.remove('visible');
+    document.getElementById('level-up-popup').classList.add('invisible');
+    setTimeout(function () { game.paused = false; }, 500);
+}
+
 function init() {
     game.cnv = document.getElementById('cnv');
     game.ctx = game.cnv.getContext('2d');
@@ -110,12 +152,13 @@ function mouseMoveHandler(e) {
 }
 function loop() {
     if (game.paused) return;
-    let start = new Date().getTime();
+    let start = performance.now();
     tick();
     draw();
     game.frame++;
-    if (new Date().getTime() - start > 16) 
-        console.log(new Date().getTime() - start);
+    if (performance.now() - start > 16) 
+        console.log(performance.now() - start);
+    
 }
 function tick() {
     // Add bullets
@@ -191,6 +234,13 @@ function tick() {
     // Advance player movement
     player.update();
     map.update();
+
+    if (player.xp >= player.nextLevelUp) {
+        game.paused = true;
+        player.level++;
+        player.nextLevelUp += 10;
+        setTimeout(levelUp, 300);
+    }
 }
 function checkMapObjectCollisions(entity) {
     let speedX = (entity.dx * entity.speed) || entity.speed;
@@ -292,13 +342,16 @@ function draw() {
     // HUD
     game.ctx.lineWidth = 2;
     game.ctx.strokeStyle = '#eee';
-    game.ctx.strokeRect(650, 110, player.maxHp, 10);
+    game.ctx.strokeRect(650, 110, 100, 10);
     game.ctx.fillStyle = '#111';
-    game.ctx.fillRect(650, 110, player.maxHp, 10);
+    game.ctx.fillRect(650, 110, 100, 10);
     game.ctx.fillStyle = '#b23';
-    game.ctx.fillRect(650, 110, player.hp, 10);
-    game.ctx.fillStyle = '#111';
+    game.ctx.fillRect(650, 110, 100* (player.hp / player.maxHp), 10);
+
     game.ctx.font = "700 24px Helvetica";
+    game.ctx.strokeText(player.hp + '/' + player.maxHp, 650, 150);
+    game.ctx.fillText(player.hp + '/' + player.maxHp, 650, 150);
+    game.ctx.fillStyle = '#111';
     game.ctx.fillText(player.xp + ' XP', 650, 70);
 
     game.ctx.lineWidth = 1;

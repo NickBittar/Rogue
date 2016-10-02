@@ -10,6 +10,7 @@ Ideas
 				- damage
 				- max bullets
 				- fire rate
+				- charge
 	Upgrade: Player
 				- max HP
 				- HP regen (stand still?)
@@ -20,8 +21,8 @@ Ideas
 				- variant HP
 				- variant gold
 				- variant XP
-				- varient size
-				- varient movement speed
+				- variant size
+				- variant movement speed
 	Enemies: Boss enemies
 	Misc: Random Pick ups
 				- Health
@@ -34,7 +35,7 @@ Ideas
 
 TODO
 [ ]	Add item shop
-[ ]	Add level system
+[X]	Add level system
 [ ]	Add start screen
 [ ]	Add options screen
 [ ]	Add restart game
