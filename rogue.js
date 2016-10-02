@@ -153,6 +153,7 @@ function tick() {
                         enemiesToRemove.push(j);
                         player.xp += map.enemies[j].xp;
                         player.gold += map.enemies[j].gold + Math.floor(Math.random() * map.enemies[j].gold * 3);
+                        player.kills++;
                         break;
                     }
                 }
@@ -284,17 +285,17 @@ function draw() {
         game.ctx.fillText('player.b: ' + (player.y + player.height).toFixed(2), 10, lineHeight * line++);
         game.ctx.fillText('map.x: ' + map.x.toFixed(2), 10, lineHeight * line++);
         game.ctx.fillText('map.y: ' + map.y.toFixed(2), 10, lineHeight * line++);
-        game.ctx.fillText('attack.charge: ' + player.attack.charge, 10, lineHeight * line++);
+        game.ctx.fillText('attack.charge: ' + player.attack.charge.toFixed(2), 10, lineHeight * line++);
     }
 
     // HUD
     game.ctx.lineWidth = 2;
     game.ctx.strokeStyle = '#eee';
-    game.ctx.strokeRect(650, 80, player.maxHp, 10);
+    game.ctx.strokeRect(650, 110, player.maxHp, 10);
     game.ctx.fillStyle = '#111';
-    game.ctx.fillRect(650, 80, player.maxHp, 10);
+    game.ctx.fillRect(650, 110, player.maxHp, 10);
     game.ctx.fillStyle = '#b23';
-    game.ctx.fillRect(650, 80, player.hp, 10);
+    game.ctx.fillRect(650, 110, player.hp, 10);
     game.ctx.fillStyle = '#111';
     game.ctx.font = "700 24px Helvetica";
     game.ctx.fillText(player.xp + ' XP', 650, 70);
@@ -308,7 +309,13 @@ function draw() {
     game.ctx.fillText(player.gold + ' gold', 650, 40);
     game.ctx.strokeText(player.gold + ' gold', 650, 40);
 
+    game.ctx.strokeStyle = '#eee';
+    game.ctx.fillStyle = '#111';
+    game.ctx.fillText(player.kills + ' kills', 650, 100);
+    game.ctx.strokeText(player.kills + ' kills', 650, 100);
+
     game.ctx.font = "900 36px Helvetica";
+    game.ctx.strokeStyle = '#222';
     game.ctx.fillStyle = '#eee';
     let elapsed = new Date((new Date() - game.startTime));
     let time = elapsed.getMinutes() < 10 ? '0' + elapsed.getMinutes() : elapsed.getMinutes();

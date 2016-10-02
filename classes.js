@@ -172,6 +172,7 @@ class Player {
             maxHp: 100,
             xp: 0,
             gold: 0,
+            kills: 0,
             luck: 100,
         };
         for (let attribute in base) {
@@ -210,6 +211,8 @@ class Player {
             this.attack.firing = false;
             if (this.attack.charge < 3) {
                 this.attack.charge += 0.05;
+            } else {
+                this.attack.charge = 3;
             }
         } else if(this.attack.charging) {
             this.attack.charging = false;
