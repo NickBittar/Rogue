@@ -24,7 +24,8 @@ class Game {
 
 }
 class Controls {
-	constructor() {
+    
+    constructor(game) {
 		let base = {
 			left: 	65,	// A
 			up: 	87, // W
@@ -38,8 +39,89 @@ class Controls {
         for (var attribute in base) {
             this[attribute] = base[attribute];
         }
+        this.game = game;
+        this.listener = this.readKey.bind(this);
+
+        this.controlsInit();
 	}
-	
+
+    controlsInit() {
+        this.updateControls();
+        const inputs = document.querySelectorAll('div.control-input');
+        for(let input of inputs) {
+            input.addEventListener('click', this.getKey.bind(this));
+        }
+    }
+
+    getKey(e) {
+        const inputScreen = document.getElementById('get-input-screen');
+        inputScreen.classList.remove('invisible');
+        inputScreen.classList.add('visible');
+
+        const control = e.target.id.split('-')[1];
+        this.control = control;
+        
+        document.addEventListener('keydown', this.listener);
+    }
+
+    readKey(e) {
+        document.removeEventListener('keydown', this.listener);
+        switch (this.control) {
+            case 'up':
+                this.up = e.keyCode;
+                break;
+            case 'left':
+                this.left = e.keyCode;
+                break;
+            case 'down':
+                this.down = e.keyCode;
+                break;
+            case 'right':
+                this.right = e.keyCode;
+                break;
+            case 'sprint':
+                this.sprint = e.keyCode;
+                break;
+            case 'shoot':
+                this.shoot = e.keyCode;
+                break;
+        }
+        this.updateControls();
+        const inputScreen = document.getElementById('get-input-screen');
+        inputScreen.classList.remove('visible');
+        inputScreen.classList.add('invisible');
+    }
+
+
+    updateControls() {
+        document.getElementById('control-up').textContent = this.getDisplayKey(this.up);
+        document.getElementById('control-left').textContent = this.getDisplayKey(this.left);
+        document.getElementById('control-down').textContent = this.getDisplayKey(this.down);
+        document.getElementById('control-right').textContent = this.getDisplayKey(this.right);
+        document.getElementById('control-sprint').textContent = this.getDisplayKey(this.sprint);
+        document.getElementById('control-shoot').textContent = this.getDisplayKey(this.shoot);
+    }
+    getDisplayKey(keycode) {
+        if (keycode === 9) return 'Tab';
+        if (keycode === 16) return 'Shift';
+        if (keycode === 17) return 'Ctrl';
+        if (keycode === 18) return 'Alt';
+        if (keycode === 32) return 'Space';
+        return String.fromCharCode(keycode);
+    }
+
+    toggleControlsPopup() {
+        const popup = document.getElementById('controls-popup');
+        if (popup.classList.contains('visible')) {
+            popup.classList.remove('visible');
+            popup.classList.add('invisible');
+            setTimeout(() => {if(popup.classList.contains('invisible')) game.paused = false;}, 300);
+        } else {
+            popup.classList.remove('invisible');
+            popup.classList.add('visible');
+            game.paused = true;
+        }
+    }
 }
 
 class Player {

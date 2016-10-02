@@ -7,7 +7,45 @@
 			<div class="container">
 				<canvas id="cnv" class="canvas" width="800" height="600"></canvas>
 			</div>
+            <div id="controls-popup" class="controls-popup visible">
+                <h1>Controls</h1>
+                <hr />
+                <br />
+                <h3>Movement</h3>
+                <div class="controls-control">
+                    <div class="control-label">Up</div>
+                    <div id="control-up" class="control-input"></div>
+                </div>
+                <div class="controls-control">
+                    <div class="control-label">Left</div>
+                        <div id="control-left" class="control-input"></div>
+                    </div>
+                <div class="controls-control">
+                    <div class="control-label">Down</div>
+                    <div id="control-down" class="control-input"></div>
+                </div>
+                <div class="controls-control">
+                    <div class="control-label">Right</div>
+                    <div id="control-right" class="control-input"></div>
+                </div>
+                <h3>Actions</h3>
+                <div class="controls-control">
+                    <div class="control-label">Sprint</div>
+                    <div id="control-sprint" class="control-input"></div>
+                </div>
+                <div class="controls-control">
+                    <div class="control-label">Shoot</div>
+                    <div id="control-shoot" class="control-input"></div>
+                </div>
+            </div>
+            <div id="get-input-screen" class="screen invisible"> 
+                <div id="controls-get-input" class="controls-get-input">
+                    Press a key to assign to the control.
+                </div>
+            </div>
 			<div class="controls">
+                <button id="controls-button" onClick="game.controls.toggleControlsPopup();">Controls</button>
+
 				<button id="pause" onClick="game.paused = !game.paused;">pause</button>
 				
 				<button id="frame-adavance" onClick="tick();draw();game.frame++;">frame++</button>

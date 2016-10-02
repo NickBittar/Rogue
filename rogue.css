@@ -31,3 +31,70 @@ canvas {
 	justify-content: center;
 	align-items: center;
 }
+.controls-popup {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    width: 500px;
+    height: 450px;
+    box-shadow: 0px 3px 6px rgba(0,0,0,0.5);
+    background: #fafafa;
+    box-sizing: border-box;
+    padding: 5%;
+    transition: all 0.3s ease-out;
+    transform: translateX(-100vw);
+}
+.controls-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    width: 150px;
+    margin: 10px;
+}
+.control-label {
+    display: flex;
+    justify-content: center;
+    width: 100px;
+}
+.control-input {
+    display: flex;
+    padding: 8px 0px;
+    background: #ddd;
+    width: 60px;
+    justify-content: center;
+}
+.control-input:hover {
+    background: #bbb;
+}
+.control-input:active {
+    background: #e5e5e5;
+}
+.screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.controls-get-input {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 16px;
+    height: 32px;
+}
+.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+.controls-popup.visible {
+    transform: translateX(0);
+}
+.invisible {
+    opacity: 0;
+    pointer-events: none;
+}

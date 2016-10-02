@@ -25,11 +25,18 @@ var game = new Game();
 var player;
 var map;
 init();
+game.paused = true;
+/* CONTROLS */
+
+
+
+/* END CONTROLS */
+
 function init() {
     game.cnv = document.getElementById('cnv');
     game.ctx = game.cnv.getContext('2d');
     game.fps = 60;
-	game.controls = new Controls();
+	game.controls = new Controls(game);
     game.player = new Player();
     game.map = new Map();
     game.cursor = new Cursor();
@@ -51,26 +58,22 @@ function reset() {
 function keyDownHandler(e) {
     e.preventDefault();
     switch (e.keyCode) {
-        case 65:	// A
-        case 37:	// Left
+        case game.controls.left:
             player.controls.left = true;
             break;
-        case 87:	// W
-        case 38:	// Up
+        case game.controls.up:
             player.controls.up = true;
             break;
-        case 68:	// D
-        case 39:	// Right
+        case game.controls.right:
             player.controls.right = true;
             break;
-        case 83:	// S
-        case 40:	// Down
+        case game.controls.down:
             player.controls.down = true;
             break;
-        case 16:	// Shift
+        case game.controls.sprint:
             player.controls.sprint = true;
             break;
-        case 32:	// Space
+        case game.controls.shoot:
             player.controls.attack = true;
             break;
         case 27:	// Esc
@@ -86,26 +89,22 @@ function keyDownHandler(e) {
 }
 function keyUpHandler(e) {
     switch (e.keyCode) {
-        case 65:	// A
-        case 37:	// Left
+        case game.controls.left:
             game.player.controls.left = false;
             break;
-        case 87:	// W
-        case 38:	// Up
+        case game.controls.up:
             game.player.controls.up = false;
             break;
-        case 68:	// D
-        case 39:	// Right
+        case game.controls.right:
             game.player.controls.right = false;
             break;
-        case 83:	// S
-        case 40:	// Down
+        case game.controls.down:
             game.player.controls.down = false;
             break;
-        case 16:	// Shift
+        case game.controls.sprint:
             game.player.controls.sprint = false;
             break;
-        case 32:	// Space
+        case game.controls.shoot:
             game.player.controls.attack = false;
             break;
     }
