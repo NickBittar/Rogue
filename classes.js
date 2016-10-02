@@ -9,6 +9,8 @@ class Game {
             paused: false,
             state: '',
             startTime: new Date(),  // TODO: Switch Dates to performance.now()
+            optionsVisible: false,
+            upgradesVisible: false,
         };
         for (var attribute in base) {
             this[attribute] = base[attribute];
@@ -20,6 +22,23 @@ class Game {
         this.paused = false;
         this.state = '';
         this.startTime = new Date();
+    }
+
+    pause(option) {
+        if (option === undefined) {
+            if (!game.upgradesVisible && !game.optionsVisible) {
+                game.paused = !game.paused;
+                return;
+            }
+        }
+        if (option === true) {
+            game.paused = true;
+        } else if (option === false) {
+            if (!game.upgradesVisible && !game.optionsVisible) {
+                game.paused = false;
+            }
+        }
+
     }
 
 }
@@ -115,11 +134,12 @@ class Controls {
         if (popup.classList.contains('visible')) {
             popup.classList.remove('visible');
             popup.classList.add('invisible');
-            setTimeout(() => {if(popup.classList.contains('invisible')) game.paused = false;}, 300);
+            setTimeout(() => { if (popup.classList.contains('invisible')) game.optionsVisible = false; game.pause(false);}, 300);
         } else {
             popup.classList.remove('invisible');
             popup.classList.add('visible');
-            game.paused = true;
+            game.pause(true);
+            game.optionsVisible = true;
         }
     }
 }

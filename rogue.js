@@ -65,7 +65,7 @@ function upgrade(e) {
 
     document.getElementById('level-up-popup').classList.remove('visible');
     document.getElementById('level-up-popup').classList.add('invisible');
-    setTimeout(function () { game.paused = false; }, 500);
+    setTimeout(function () { game.upgradesVisible = false; game.pause(false); }, 500);
 }
 
 function init() {
@@ -113,7 +113,7 @@ function keyDownHandler(e) {
             player.controls.attack = true;
             break;
         case 27:	// Esc
-            game.paused = !game.paused;
+            game.pause();
             break;
         case 192:	// ~
             game.debug = !game.debug;
@@ -236,7 +236,8 @@ function tick() {
     map.update();
 
     if (player.xp >= player.nextLevelUp) {
-        game.paused = true;
+        game.pause(true);
+        game.upgradesVisible = true;
         player.level++;
         player.nextLevelUp += 10;
         setTimeout(levelUp, 300);
