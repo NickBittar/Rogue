@@ -182,3 +182,6 @@ canvas {
 .item-choice:active {
     background: #aaa;
 }
+.game-over-screen {
+    transition: all 2.5s cubic-bezier(0.11, 0.64, 0.39, 1);
+}

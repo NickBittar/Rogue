@@ -34,7 +34,7 @@ Ideas
 				- Don't move for x sec
 
 TODO
-[ ]	Add item shop
+[X]	Add item shop
 [X]	Add level system
 [ ]	Add start screen
 [X]	Add options screen

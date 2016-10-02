@@ -7,6 +7,19 @@
 			<div class="container">
 				<canvas id="cnv" class="canvas" width="800" height="600"></canvas>
 			</div>
+            <div id="game-over-screen" class="game-over-screen screen invisible">
+                <div id="game-over-popup" class="popup level-up-popup invisible">
+                    <h1>Game Over</h1>
+                    <hr /><br />
+                    <h3>Statistics</h3>
+                    <br />
+                    <div id="statistics" class="statistics">
+
+                    </div>
+                    <br />
+                    <button onClick="reset();">Restart</button>
+                </div>
+            </div>
             <div id="level-up-popup" class="popup level-up-popup invisible">
                 <h1>Level Up</h1>
                 <hr /><br />
@@ -69,8 +82,10 @@
                 <button id="controls-button" onClick="game.controls.toggleControlsPopup();">Controls</button>
 
 				<button id="pause" onClick="game.paused = !game.paused;">pause</button>
-				
-				<button id="frame-adavance" onClick="tick();draw();game.frame++;">frame++</button>
+
+                <button id="frame-adavance" onClick="tick();draw();game.frame++;">frame++</button>
+
+                <button id="reset" onClick="reset();">Reset</button>
 			</div>
 			<div id="controller-info" class="controller">
 			</div>

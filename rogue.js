@@ -90,6 +90,11 @@ function reset() {
     game.map = new Map(game);
     player = game.player;
     map = game.map;
+
+    document.getElementById('game-over-screen').classList.remove('visible');
+    document.getElementById('game-over-screen').classList.add('invisible');
+    document.getElementById('game-over-popup').classList.remove('visible');
+    document.getElementById('game-over-popup').classList.add('invisible');
 }
 function keyDownHandler(e) {
     e.preventDefault();
@@ -224,10 +229,27 @@ function tick() {
             if (checkIntersection(enemy, player)) {
                 if (player.hp > 0) {
                     player.hp -= 5;
+                } else {
+                    player.dead = true;
+                    player.controls.left = player.controls.up = player.controls.right = player.controls.down = false;
+                    if (game.state != 'Game Over') {
+                        game.state = 'Game Over';
+                        setTimeout(() => {
+                            document.getElementById('game-over-screen').classList.remove('invisible');
+                            document.getElementById('game-over-screen').classList.add('visible');
+                        }, 800);
+                        setTimeout(() => {
+                            document.getElementById('game-over-popup').classList.remove('invisible');
+                            document.getElementById('game-over-popup').classList.add('visible');
+                            game.pause(false);
+                        }, 2200);
+                    }
                 }
             }
         }
     }
+
+
 
     // Enemies
     if (map.enemies.length < map.maxEnemies) {
@@ -238,8 +260,10 @@ function tick() {
     }
 
     // Advance player movement
-    player.update();
-    map.update();
+    if (!player.dead) {
+        player.update();
+        map.update();
+    }
 
     // Player Level Up
     if (player.xp >= player.nextLevelUp) {

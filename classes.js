@@ -276,13 +276,14 @@ class Player {
                 chargeRate: 0.025,
             },
             hp: 100,
+            dead: false,
             maxHp: 100,
             xp: 0,
             level: 0,
             nextLevelUp: 10,
             gold: 0,
             kills: 0,
-            luck: 100,
+            luck: 1,
             items: [],
         };
         for (let attribute in base) {
