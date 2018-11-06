@@ -11,6 +11,9 @@ Ideas
 				- max bullets
 				- fire rate
 				- charge
+				- laser sight
+				- explosion on target (cursor not enemy hit)
+				- bullets go past cursor location (to max range)
 	Upgrade: Player
 				- max HP
 				- HP regen (stand still?)
@@ -23,7 +26,9 @@ Ideas
 				- variant XP
 				- variant size
 				- variant movement speed
-	Enemies: Boss enemies
+	Enemies: 
+				- Boss enemies - stronger bigger etc...
+				- Guard enemies - guard/patrol a certain area, can only agro if close enough, will return
 	Misc: Random Pick ups
 				- Health
 				- Weapon
@@ -42,6 +47,8 @@ TODO
 [X]	Add enemy pathfinding (kind of)
 [ ]	Add sounds
 [X]	Add upgrades
+[ ]	Change enemy hit calculation to be dependent on frame, luck, and something unique to enemy (to avoid mass hits at same time)
+[ ]	Add icons for upgrades
 
 Backlog
 [ ]	Add music
