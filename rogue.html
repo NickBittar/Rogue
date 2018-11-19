@@ -7,6 +7,13 @@
 			<div class="container">
 				<canvas id="cnv" class="canvas" width="800" height="600"></canvas>
 			</div>
+            <div id="pause-popup" class="popup pause-popup invisible">
+                <h1>Paused</h1>
+                <hr /><br />
+                <h3>Game is Paused</h3>
+                <br />
+                <button class="unpause-btn" onclick="if(!game.isTransitioning) { game.hidePauseMenu(); game.pauseTransistioning = true; setTimeout(function() { game.screensVisible.splice(game.screensVisible.indexOf('Pause'), 1); game.pause(false); game.pauseTransistioning = false; }, 500); }">Unpause</button>
+            </div>
             <div id="game-over-screen" class="game-over-screen screen invisible">
                 <div id="game-over-popup" class="popup level-up-popup invisible">
                     <h1>Game Over</h1>
@@ -39,7 +46,7 @@
                 </div>
             </div>
             <div id="controls-popup" class="popup controls-popup invisible">
-                <h1>Controls</h1>
+                <h1>Controls</h1><div class="close-btn" onclick="game.controls.hide();">X</div>
                 <hr />
                 <br />
                 <h3>Movement</h3>
@@ -83,7 +90,7 @@
 
 				<button id="pause" onClick="game.paused = !game.paused;">pause</button>
 
-                <button id="frame-adavance" onClick="tick();draw();game.frame++;">frame++</button>
+                <button id="frame-adavance" onClick="game.pause(false);frameAdvance();game.pause(true);">frame++</button>
 
                 <button id="reset" onClick="reset();">Reset</button>
 			</div>

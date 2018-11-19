@@ -24,48 +24,33 @@ function controllerCheck() {
 var game = new Game();
 var player;
 var map;
+var upgrades = new Upgrades();
 init();
 
 function levelUp() {
     const choices = document.getElementById('level-up-choices');
-    const allUpgrades = ['Health Up', 'Damage Up', 'Speed Up', 'Pierce Up', 'Fire Rate Up', 'Range Up', 'Charge Capacity Up', 'Charge Rate Up', 'Max Bullets Up', 'Luck Up', 'Dash Duration Up', 'Dash Cooldown Down'];
-    let upgrades = [];
-    for (let i = 0; i < 3; i++) {
-        let upgradeIndex = Math.floor(Math.random() * allUpgrades.length);
-        if (upgrades.includes(allUpgrades[upgradeIndex])) {
-            i--;
-            continue;
-        }
-        upgrades.push(allUpgrades[upgradeIndex]);
-    }
-    let html = '';
-    for(let upgrade of allUpgrades) {
-        html += `
-            <div class="upgrade-choice" data-upgrade="${upgrade}" onclick="upgrade(event)">
-            ${upgrade}
-            </div>
-            `;
-    }
-    choices.innerHTML = html;
+
+    choices.innerHTML = upgrades.generateHtmlForUpgradeOptions(player);
 
     document.getElementById('level-up-popup').classList.remove('invisible');
     document.getElementById('level-up-popup').classList.add('visible');
 }
 
-function upgrade(e) {
-    const choices = document.querySelectorAll('.upgrade-choice');
-    for(let c of choices) {
-        c.onclick = null;
-    }
+function upgrade(e, upgradeKey) {
+    console.log(upgradeKey);
     
-    const choice = e.target.getAttribute('data-upgrade');
-    console.log(choice);
-    
-    game.player.upgrade(choice)
+    const upgradeSuccess = upgrades.upgrades[upgradeKey].applyUpgradeTo(player);
 
-    document.getElementById('level-up-popup').classList.remove('visible');
-    document.getElementById('level-up-popup').classList.add('invisible');
-    setTimeout(function () { game.screensVisible.splice(game.screensVisible.indexOf('Upgrades'), 1); game.pause(false); }, 500);
+    if(upgradeSuccess) {
+        const choices = document.querySelectorAll('.upgrade-choice');
+        for(let c of choices) {
+            c.onclick = null;
+        }
+
+        document.getElementById('level-up-popup').classList.remove('visible');
+        document.getElementById('level-up-popup').classList.add('invisible');
+        setTimeout(function () { game.screensVisible.splice(game.screensVisible.indexOf('Upgrades'), 1); game.pause(false); }, 500);
+    }
 }
 
 function init() {
@@ -79,7 +64,7 @@ function init() {
     reset();
 
     setInterval(loop, 1000 / game.fps);
-    //draw();
+    
     document.addEventListener('keydown', keyDownHandler, false);
     document.addEventListener('keyup', keyUpHandler, false);
     document.addEventListener('mousemove', mouseMoveHandler, false);
@@ -121,7 +106,18 @@ function keyDownHandler(e) {
             player.controls.attack = true;
             break;
         case 27:	// Esc
-            game.pause();
+            if(!game.pauseTransistioning && game.screensVisible.filter(s => s !== 'Pause').length === 0) {
+                if (game.paused) {
+                    game.hidePauseMenu(); 
+                    game.pauseTransistioning = true;
+                    setTimeout(function() { game.screensVisible.splice(game.screensVisible.indexOf('Pause'), 1); game.pause(false); game.pauseTransistioning = false; }, 500);
+                } else {
+                    game.pause(true);
+                    game.screensVisible.push('Pause');
+                    game.showPauseMenu();
+                }
+            }
+            
             break;
         case 192:	// ~
             game.debug = !game.debug;
@@ -162,123 +158,144 @@ function mouseMoveHandler(e) {
     game.cursor.buttons = e.buttons;
 }
 function loop() {
-    if (game.paused) return;
     let start = performance.now();
-    tick();
-    draw();
-    game.frame++;
+	
+	frameAdvance();
+	
     if (performance.now() - start > 16) 
         console.log(performance.now() - start);
+}
+function frameAdvance() {
+	if (game.lastFrameTime !== null && (!game.paused && game.state !== 'Game Over')) {
+		game.pauseTime += (+new Date()-(+game.lastFrameTime));
+		game.lastFrameTime = null;
+	}
+	if(game.lastFrameTime === null && (game.paused || game.state === 'Game Over')) {
+		game.lastFrameTime = new Date();
+	}
+	
+    tick();
+    draw();
     
+	if (!game.paused) {
+		game.frame++;
+	} 
 }
 function tick() {
-    // Add bullets
-    if (game.player.attack.firing && player.attack.bullets.length < player.attack.maxBullets && game.frame > player.attack.lastAttack + player.attack.fireRate) {
-        player.attack.bullets.push(new Bullet(game, game.player.attack.charge));
-        player.attack.lastAttack = game.frame;
-        game.player.attack.firing = false;
-        game.player.attack.charge = 0;
-    }
-    // Bullet updates
-    for (let i = 0; i < player.attack.bullets.length; i++) {
-        player.attack.bullets[i].update();
-        if (player.attack.bullets[i].x > player.attack.bullets[i].targetX - player.attack.bullets[i].speed &&
-            player.attack.bullets[i].x < player.attack.bullets[i].targetX + player.attack.bullets[i].speed &&
-            player.attack.bullets[i].y > player.attack.bullets[i].targetY - player.attack.bullets[i].speed &&
-            player.attack.bullets[i].y < player.attack.bullets[i].targetY + player.attack.bullets[i].speed) {
-            player.attack.bullets.splice(i, 1);
-        }
-    }
+	if(!game.paused) {
+		// Add bullets
+		if (game.player.attack.firing && player.attack.bullets.length < player.attack.maxBullets && game.frame > player.attack.lastAttack + player.attack.fireRate) {
+			player.attack.bullets.push(new Bullet(game, game.player.attack.charge));
+			player.attack.lastAttack = game.frame;
+			game.player.attack.firing = false;
+			game.player.attack.charge = 0;
+		}
+		// Bullet updates
+		for (let i = 0; i < player.attack.bullets.length; i++) {
+			player.attack.bullets[i].update();
+			if (player.attack.bullets[i].x > player.attack.bullets[i].targetX - player.attack.bullets[i].speed &&
+				player.attack.bullets[i].x < player.attack.bullets[i].targetX + player.attack.bullets[i].speed &&
+				player.attack.bullets[i].y > player.attack.bullets[i].targetY - player.attack.bullets[i].speed &&
+				player.attack.bullets[i].y < player.attack.bullets[i].targetY + player.attack.bullets[i].speed) {
+				player.attack.bullets.splice(i, 1);
+			}
+		}
 
-    // Check enemy collision
-    let bulletsToRemove = [];
-    let enemiesToRemove = [];
-    for (let i in player.attack.bullets) {
-        for (let j in map.enemies) {
-            if (checkIntersection(player.attack.bullets[i], map.enemies[j])) {
-                if (!enemiesToRemove.includes(j) && !bulletsToRemove.includes(i)) {
-                    player.attack.bullets[i].hp -= 1;
-                    map.enemies[j].hp -= player.attack.bullets[i].dmg;
+		// Check enemy collision
+		let bulletsToRemove = [];
+		let enemiesToRemove = [];
+		for (let i in player.attack.bullets) {
+			for (let j in map.enemies) {
+				if (checkIntersection(player.attack.bullets[i], map.enemies[j])) {
+					if (!enemiesToRemove.includes(j) && !bulletsToRemove.includes(i)) {
+						player.attack.bullets[i].hp -= 1;
+						map.enemies[j].hp -= player.attack.bullets[i].dmg;
 
-                    if (player.attack.bullets[i].hp <= 0) {
-                        bulletsToRemove.push(i);
-                    }
-                    if(map.enemies[j].hp <= 0) {
-                        enemiesToRemove.push(j);
-                        player.xp += map.enemies[j].xp;
-                        player.gold += map.enemies[j].gold + Math.floor(Math.random() * map.enemies[j].gold * 3);
-                        player.kills++;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    // Remove bullets that collided
-    for (let i = bulletsToRemove.length - 1; i >= 0; i--) {
-        player.attack.bullets.splice(bulletsToRemove[i], 1);
-    }
-    // Remove enemies that were shot
-    for (let i = enemiesToRemove.length - 1; i >= 0; i--) {
-        map.enemies.splice(enemiesToRemove[i], 1);
-    }
+						if (player.attack.bullets[i].hp <= 0) {
+							bulletsToRemove.push(i);
+						}
+						if(map.enemies[j].hp <= 0) {
+							enemiesToRemove.push(j);
+							player.xp += map.enemies[j].xp;
+							player.gold += map.enemies[j].gold + Math.floor(Math.random() * map.enemies[j].gold * 3);
+							player.kills++;
+							break;
+						}
+					}
+				}
+			}
+		}
+		// Remove bullets that collided
+		for (let i = bulletsToRemove.length - 1; i >= 0; i--) {
+			player.attack.bullets.splice(bulletsToRemove[i], 1);
+		}
+		// Remove enemies that were shot
+		for (let i = enemiesToRemove.length - 1; i >= 0; i--) {
+			map.enemies.splice(enemiesToRemove[i], 1);
+		}
 
-    // Check if player is hit
-    if (game.frame % (10 + player.luck) === 0) {
-        for(let enemy of map.enemies) {
-            if (checkIntersection(enemy, player)) {
-                if (player.hp > 0) {
-                    player.hp -= 5;
-                } else {
-                    player.dead = true;
-                    player.controls.left = player.controls.up = player.controls.right = player.controls.down = false;
-                    if (game.state != 'Game Over') {
-                        game.state = 'Game Over';
-                        setTimeout(() => {
-                            document.getElementById('game-over-screen').classList.remove('invisible');
-                            document.getElementById('game-over-screen').classList.add('visible');
-                        }, 800);
-                        setTimeout(() => {
-                            document.getElementById('game-over-popup').classList.remove('invisible');
-                            document.getElementById('game-over-popup').classList.add('visible');
-                            game.pause(false);
-                        }, 2200);
-                    }
-                }
-            }
-        }
-    }
+		// Check if player is hit
+		if (game.frame % (10 + player.luck) === 0) {
+			for(let enemy of map.enemies) {
+				if (checkIntersection(enemy, player)) {
+					if (player.hp > 0) {
+						// player.hp -= 5;
+					} else {
+						player.dead = true;
+						player.controls.left = player.controls.up = player.controls.right = player.controls.down = false;
+						if (game.state != 'Game Over') {
+							game.state = 'Game Over';
+							setTimeout(() => {
+								document.getElementById('game-over-screen').classList.remove('invisible');
+								document.getElementById('game-over-screen').classList.add('visible');
+							}, 800);
+							setTimeout(() => {
+								document.getElementById('game-over-popup').classList.remove('invisible');
+								document.getElementById('game-over-popup').classList.add('visible');
+								game.pause(false);
+							}, 2200);
+						}
+					}
+				}
+			}
+		}
+    
 
 
 
-    // Enemies
-    if (map.enemies.length < map.maxEnemies) {
-        map.enemies.push(new Enemy(game));
-    }
-    for (let enemy of map.enemies) {
-        enemy.update();
-    }
+		// Enemies
+		if (map.enemies.length < map.maxEnemies) {
+			map.enemies.push(new Enemy(game));
+		}
+		for (let enemy of map.enemies) {
+			enemy.update();
+		}
 
-    // Advance player movement
-    if (!player.dead) {
-        player.update();
-        map.update();
-    }
+		// Advance player movement
+		if (!player.dead) {
+			player.update();
+			map.update();
+		}
 
-    // Player Level Up
-    if (player.xp >= player.nextLevelUp) {
-        game.screensVisible.push('Upgrades');
-        game.pause(true);
-        player.level++;
-        player.nextLevelUp += 100;
-        setTimeout(levelUp, 300);
-    }
+		// Player Level Up
+		if (player.xp >= player.nextLevelUp) {
+			game.screensVisible.push('Upgrades');
+			game.pause(true);
+			player.level++;
+			player.nextLevelUp += 100;
+			setTimeout(levelUp, 300);
+		}
 
-    // Player shop
-    if (player.controls.use && checkIntersection(player, map.shop)) {
-        map.shop.show();
-        game.pause(true);
-    }
+		// Player shop
+		if (player.controls.use && checkIntersection(player, map.shop)) {
+			map.shop.show();
+			game.pause(true);
+		}
+		
+		game.lastGameTime = (new Date() - game.startTime);
+	} else {
+		// Game is paused...
+	}
 }
 function checkMapObjectCollisions(entity) {
     let speedX = (entity.dx * entity.speed) || entity.speed;
@@ -367,6 +384,13 @@ function draw() {
         game.ctx.fillText(i, map.enemies[i].x + map.x, map.enemies[i].y + map.y)
     }
 
+    // Draw items
+    for(var u of player.items) {
+        if(u.draw && u.isEquipped) {
+            u.draw(game.ctx);
+        }
+    }
+
     // Draw map objects
     game.ctx.fillStyle = '#222';
     map.objects.forEach(obj => game.ctx.fillRect(obj.x + map.x, obj.y + map.y, obj.width, obj.height));
@@ -422,13 +446,80 @@ function draw() {
     game.ctx.font = "900 36px Helvetica";
     game.ctx.strokeStyle = '#222';
     game.ctx.fillStyle = '#eee';
-    let elapsed = new Date((new Date() - game.startTime));
-    let time = elapsed.getMinutes() < 10 ? '0' + elapsed.getMinutes() : elapsed.getMinutes();
-    time += ':';
-    time += elapsed.getSeconds() < 10 ? '0' + elapsed.getSeconds() : elapsed.getSeconds();
+    let elapsed = new Date(game.lastGameTime - game.pauseTime);
+	let time = formatTime(elapsed, game.timerFormat);
     game.ctx.fillText(time, game.cnv.width / 2 - game.ctx.measureText(time).width/2, 50);
     game.ctx.strokeText(time, game.cnv.width / 2 - game.ctx.measureText(time).width / 2, 50);
 
+}
+
+function formatTime(datetime, format = 'h:mm:ss.fff') {
+	if(datetime === null || datetime === undefined) return format.replace(/[A-z]/g, '0');
+	duration = +datetime;
+	
+	const datetimeParts = {
+		hh: '',
+		h: '',
+		mm: '',
+		m: '',
+		ss: '',
+		s: '',
+		fff: '',
+		ff: '',
+		f: '',
+	};
+	
+	// MILLISECOND
+	let ms = duration % 1000;
+	if (/s/g.test(format)) {	// If we are adding an sec component, shift extra milliseconds to seconds
+		ms %= 1000;
+	}
+	duration -= ms;
+	
+	datetimeParts.fff = Math.floor(ms/  1).toString().padStart(3, '0');
+	datetimeParts.ff  = Math.floor(ms/ 10).toString().padStart(2, '0');
+    datetimeParts.f   = Math.floor(ms/100).toString().padStart(1, '0');
+	
+	// SECOND
+	let sec = (duration / 1000);
+	if (/m/g.test(format)) {	// If we are adding an min component, shift extra seconds to minutes
+		sec %= 60;
+	}
+	duration -= sec*1000;
+	
+	datetimeParts.s = sec.toString();
+	datetimeParts.ss = sec.toString().padStart(2, '0');
+	
+	// MINUTE
+	let min = (duration / 1000 / 60);
+	if (/h/g.test(format)) {	// If we are adding an hour component, shift extra minutes to hours
+		min %= 60;
+	}
+	duration -= min*1000*60;
+	
+	datetimeParts.m = min.toString();
+	datetimeParts.mm = min.toString().padStart(2, '0');
+	
+	// HOUR
+	let hr = (duration / 1000 / 60 / 60);
+	duration -= hr*1000*60*60;
+	hr = hr.toString();
+	
+	datetimeParts.h = hr.toString();
+	datetimeParts.hh = hr.toString().padStart(2, '0');
+	
+	for(var dp in datetimeParts) {
+		var regexToFindOptionalPart = new RegExp('{' + dp + '(.?)}', 'g');
+		if(regexToFindOptionalPart.test(format) && (datetimeParts[dp] === '' || datetimeParts[dp] == 0)) {
+			format = format.replace(regexToFindOptionalPart, '');
+		} else {
+			format = format.replace(dp, datetimeParts[dp]);
+		}
+		
+	}
+    format = format.replace(/{|}/g, '');    // Remove curly braces "{", "}"
+	
+	return format;
 }
 
 function checkIntersection(r1, r2) {

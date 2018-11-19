@@ -7,9 +7,14 @@ class Game {
             ctx: null,
             debug: false,
             paused: false,
+			pauseTime: 0,
+			lastFrameTime: null,
+			lastGameTime: '',
             state: '',
             startTime: new Date(),  // TODO: Switch Dates to performance.now()
             screensVisible: [],
+            timerFormat: '{h:}{mm:}ss.ff',
+            pauseTransistioning: false,
         };
         for (var attribute in base) {
             this[attribute] = base[attribute];
@@ -21,6 +26,9 @@ class Game {
         this.paused = false;
         this.state = '';
         this.startTime = new Date();
+		this.pauseTime = 0;
+		this.lastFrameTime = null;
+		this.lastGameTime = '';
     }
 
     pause(option) {
@@ -37,7 +45,16 @@ class Game {
                 game.paused = false;
             }
         }
-
+    }
+    showPauseMenu() {
+        var popup = document.getElementById('pause-popup');
+        popup.classList.remove('invisible');
+        popup.classList.add('visible');
+    }
+    hidePauseMenu() {
+        var popup = document.getElementById('pause-popup');
+        popup.classList.add('invisible');
+        popup.classList.remove('visible');
     }
 
 }
@@ -136,15 +153,24 @@ class Controls {
     toggleControlsPopup() {
         const popup = document.getElementById('controls-popup');
         if (popup.classList.contains('visible')) {
-            popup.classList.remove('visible');
-            popup.classList.add('invisible');
-            setTimeout(() => { if (popup.classList.contains('invisible')) game.screensVisible.splice(game.screensVisible.indexOf('Options'), 1); game.pause(false);}, 300);
+            this.hide();
         } else {
-            popup.classList.remove('invisible');
-            popup.classList.add('visible');
-            game.screensVisible.push('Options');
-            game.pause(true);
+           this.show();
         }
+    }
+    show() {
+        const popup = document.getElementById('controls-popup');
+        popup.classList.remove('invisible');
+        popup.classList.add('visible');
+        game.screensVisible.push('Options');
+        game.pause(true);
+
+    }
+    hide() {
+        const popup = document.getElementById('controls-popup');
+        popup.classList.remove('visible');
+        popup.classList.add('invisible');
+        setTimeout(() => { if (popup.classList.contains('invisible')) game.screensVisible.splice(game.screensVisible.indexOf('Options'), 1); game.pause(false);}, 300);
     }
 }
 
@@ -160,17 +186,118 @@ class Shop {
                 {
                     name: 'Sprint',
                     desc: 'Gain the ability to dash quickly to get around the map and to avoid enemies.',
-                    cost: 200,
+                    cost: 400,
+                    oneTimePurchase: true,
+                    entity: {
+                        name: 'Sprint',
+                        isEquipped: true,
+                        update: function() {
+                            
+                        },
+                        draw: function() {
+                            
+                        },
+                    }
                 },
                 {
                     name: 'Charge',
                     desc: 'Allows you to hold your attack button to charge up your next shot.  A charged shot is bigger, stronger, and can pierce through multiple enemies.',
-                    cost: 300,
+                    cost: 600,
+                    oneTimePurchase: true,
+                    entity: {
+                        name: 'Charge',
+                        isEquipped: true,
+                        update: function() {
+                            
+                        },
+                        draw: function() {
+                            
+                        },
+                    }
+                },
+                {
+                    name: 'Laser Sight',
+                    desc: 'Adds a laser that shows exactly where your bullets will go.',
+                    cost: 600,
+                    oneTimePurchase: true,
+                    entity: {
+                        name: 'Laser Sight',
+                        isEquipped: true,
+                        lastX: null,
+                        lastY: null,
+                        currX: null,
+                        currY: null,
+                        originX: null,
+                        originY: null,
+                        update: function() {
+                            
+                        },
+                        draw: function(ctx) {
+                            var dotSize = 4;
+
+                            if(!game.paused) {
+                                this.lastX = this.currX;
+                                this.lastY = this.currY;
+
+                                var x = game.player.x + game.map.x + game.player.width / 2;
+                                var y = game.player.y + game.map.y + game.player.height / 2;
+                                var targetX = game.cursor.x;
+                                var targetY = game.cursor.y;
+                                
+                                // Limit distance of laser to range
+                                let distX = targetX - x;
+                                let distY = targetY - y;
+                                let dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
+                                let maxRange = game.player.attack.range-16;
+                                if (dist > maxRange) {
+                                    let pct = maxRange / dist;
+                                    dist = maxRange;
+                                    distX *= pct;
+                                    distY *= pct;
+                                    targetX = x + distX;
+                                    targetY = y + distY;
+                                }
+                                this.originX = x;
+                                this.originY = y;
+                                this.currX = targetX;
+                                this.currY = targetY;
+                            }
+
+                            ctx.fillStyle = 'rgba(255,0,0,0.6)';
+                            ctx.strokeStyle = 'rgba(255,0,0,0.6)';
+                            ctx.lineWidth = 1;
+                            ctx.fillRect(this.currX - dotSize/2, this.currY - dotSize/2, dotSize, dotSize);
+                            ctx.beginPath();
+                            ctx.moveTo(this.originX, this.originY);
+                            ctx.lineTo(this.currX, this.currY);
+                            if(this.lastX !== null && this.lastY !== null && (this.lastX !== this.currX || this.lastY !== this.currY)) {
+                                // Draw Laser "triangle" line swoosh
+                                ctx.lineTo(this.lastX, this.lastY);
+                                ctx.closePath();
+
+                                let currMid = midPoint(this.originX, this.originY, this.currX, this.currY);
+                                let changeDist = Math.sqrt(Math.pow(this.currX-this.lastX, 2) + Math.pow(this.currY-this.lastY, 2));
+                                let p = getPerpOfLine(this.originX, this.originY, this.currX, this.currY);
+                                var isOppositeDirection = isLeft({x: this.originX, y: this.originY}, {x: this.lastX, y: this.lastY}, {x:this.currX, y: this.currY});                            
+                                if(isOppositeDirection) changeDist *= -1;
+
+                                var my_gradient=ctx.createLinearGradient(currMid.x + (p.y * changeDist),currMid.y + (p.x * changeDist),currMid.x,currMid.y);
+                                my_gradient.addColorStop(1,"rgba(255,0,0,0.5)");
+                                my_gradient.addColorStop(0,"rgba(255,0,0,0.0)");
+                                ctx.fillStyle=my_gradient;
+                                ctx.fill();
+                            } else {
+                                // Draw Laser Line
+                                ctx.stroke();
+                            }
+                        },
+                    },
                 },
                 {
                     name: 'Test Item',
                     desc: 'pls don\'t buy, only testing.',
                     cost: 100,
+                    oneTimePurchase: false,
                 },
             ],
             
@@ -183,6 +310,7 @@ class Shop {
     }
 
     show() {
+        this.updateItems();
         this.game.screensVisible.push('Shop');
         document.getElementById('shop-popup').classList.remove('invisible');
         document.getElementById('shop-popup').classList.add('visible');
@@ -199,14 +327,16 @@ class Shop {
     updateItems() {
         let html = '';
         for(let item of this.items) {
-            html +=
-                `
-                <div class ="item-choice" data-item="${item.name}" onclick="game.map.shop.buy(event, this);">
-                    <div class ="item-choice-name">${item.name}</div>
-                    <div class ="item-choice-desc">${item.desc}</div>
-                    <div class ="item-choice-cost">${item.cost} gold</div>
-                </div>
-                `;
+            if(!item.oneTimePurchase || game.player.items.filter(i => i.name === item.name).length === 0) {
+                html +=
+                    `
+                    <div class ="item-choice" data-item="${item.name}" onclick="game.map.shop.buy(event, this);">
+                        <div class ="item-choice-name">${item.name}</div>
+                        <div class ="item-choice-desc">${item.desc}</div>
+                        <div class ="item-choice-cost">${item.cost} gold</div>
+                    </div>
+                    `;
+            }
         }
         document.getElementById('shop-choices').innerHTML = html;
     }
@@ -216,9 +346,10 @@ class Shop {
         if (item.cost > game.player.gold) {
             // Not enough money
         } else {
-            game.player.items.push(item);
+            game.player.items.push(item.entity || item);
             game.player.gold -= item.cost;
             document.getElementById('shop-gold').textContent = 'You have ' + game.player.gold + ' gold';
+            this.updateItems();
         }
     }
 
@@ -285,6 +416,20 @@ class Player {
             kills: 0,
             luck: 1,
             items: [],
+            upgradeLevels: {
+                healthUp: 0, 
+                damageUp: 0,
+                speedUp: 0,
+                pierceUp: 0,
+                fireRateUp: 0,
+                rangeUp: 0,
+                chargeCapacityUp: 0,
+                chargeRateUp: 0,
+                maxBulletsUp: 0,
+                luckUp: 0,
+                dashDurationUp: 0,
+                dashCooldownDown: 0,
+            },
         };
         for (let attribute in base) {
             this[attribute] = base[attribute];
@@ -320,10 +465,12 @@ class Player {
         if (this.controls.attack) {
             this.attack.charging = true;
             this.attack.firing = false;
-            if (this.attack.charge < this.attack.chargeCapacity) {
-                this.attack.charge += this.attack.chargeRate;
-            } else {
-                this.attack.charge = this.attack.chargeCapacity;
+            if(this.items.filter(i => i.name === 'Charge' && i.isEquipped).length > 0) {
+                if (this.attack.charge < this.attack.chargeCapacity) {
+                    this.attack.charge += this.attack.chargeRate;
+                } else {
+                    this.attack.charge = this.attack.chargeCapacity;
+                }
             }
         } else if(this.attack.charging) {
             this.attack.charging = false;
@@ -331,25 +478,27 @@ class Player {
         }
 
         // Player sprint ability
-        if (this.sprint.status != 'ready' && game.frame > this.sprint.lastSprint + this.sprint.duration + this.sprint.recover + this.sprint.cooldown) {
-            this.sprint.status = 'ready';
-        }
-        if (this.controls.sprint && this.sprint.status == 'ready' &&
-          (this.controls.left || this.controls.up || this.controls.right || this.controls.down)) {
-            this.sprint.status = 'sprinting';
-            this.sprint.lastSprint = game.frame;
-        }
-        if (this.sprint.status != 'ready') {
-            if (game.frame < this.sprint.lastSprint + this.sprint.duration) {
-                this.dx *= this.sprint.speed;
-                this.dy *= this.sprint.speed;
-            } else if (game.frame < this.sprint.lastSprint + this.sprint.duration + this.sprint.recover) {
-                this.sprint.status = 'recovering';
-                this.dx *= this.sprint.recoverSpeed;
-                this.dy *= this.sprint.recoverSpeed;
-                
-            } else {
-                this.sprint.status = 'waiting';
+        if(this.items.filter(i => i.name === 'Sprint' && i.isEquipped).length > 0) {
+            if (this.sprint.status != 'ready' && game.frame > this.sprint.lastSprint + this.sprint.duration + this.sprint.recover + this.sprint.cooldown) {
+                this.sprint.status = 'ready';
+            }
+            if (this.controls.sprint && this.sprint.status == 'ready' &&
+            (this.controls.left || this.controls.up || this.controls.right || this.controls.down)) {
+                this.sprint.status = 'sprinting';
+                this.sprint.lastSprint = game.frame;
+            }
+            if (this.sprint.status != 'ready') {
+                if (game.frame < this.sprint.lastSprint + this.sprint.duration) {
+                    this.dx *= this.sprint.speed;
+                    this.dy *= this.sprint.speed;
+                } else if (game.frame < this.sprint.lastSprint + this.sprint.duration + this.sprint.recover) {
+                    this.sprint.status = 'recovering';
+                    this.dx *= this.sprint.recoverSpeed;
+                    this.dy *= this.sprint.recoverSpeed;
+                    
+                } else {
+                    this.sprint.status = 'waiting';
+                }
             }
         }
 
@@ -369,48 +518,13 @@ class Player {
         checkMapObjectCollisions(this);
     }
 
-    upgrade(choice) {
-        switch (choice) {
-            case 'Health Up':
-                this.hp += 10;
-                this.maxHp += 10;
-                break;
-            case 'Damage Up':
-                this.attack.dmg += 1;
-                break;
-            case 'Speed Up':
-                this.speed += 0.25;
-                break;
-            case 'Pierce Up':
-                this.attack.pierce += 1;
-                break;
-            case 'Fire Rate Up':
-                this.attack.fireRate -= 2;
-                break;
-            case 'Range Up':
-                this.attack.range += 10;
-                break;
-            case 'Charge Capacity Up':
-                this.attack.chargeCapacity += 1;
-                break;
-            case 'Charge Rate Up':
-                this.attack.chargeRate += 0.025;
-                break;
-            case 'Max Bullets Up':
-                this.attack.maxBullets += 1;
-                break;
-            case 'Luck Up':
-                this.luck += 1;
-                break;
-            case 'Dash Duration Up':
-                this.sprint.duration += 2;
-                break;
-            case 'Dash Cooldown Down':
-                this.sprint.cooldown -= 4;
-                break;
-            default:
-                console.warn('Unknown upgrade ' + choice);
-                break;
+    heal(hp, isOverheal) {
+        let isFullyHealed = (this.hp >= this.maxHp);
+        let healWillOverHeal = (this.hp + hp > this.maxHp);
+        if (isOverheal || (!isFullyHealed && !healWillOverHeal)) {
+            this.hp += hp;
+        } else if (!isFullyHealed && healWillOverHeal) {
+            this.hp = this.maxHp;
         }
     }
 }
@@ -582,4 +696,309 @@ class Cursor {
             this[attribute] = base[attribute];
         }
     }
+}
+
+class Upgrades {
+    constructor() {
+        let base = {
+            upgradeGUI: {
+                upgradeCapLeft: 'res/upgradeCapLeft.png',
+                upgradeUnitOn: 'res/upgradeUnitOn.png',
+                upgradeUnitOff: 'res/upgradeUnitOff.png',
+            },
+            upgrades: {
+                healthUp: {
+                    name: 'Health Up',
+                    iconPath: 'res/healthUpIcon.png',
+                    hue: 0,
+                    saturation: 0,
+                    brightness: 0,
+                    incrementValue: 10,     // HP to increase with each count
+                    maxLevel: 30,           // Max Count
+                    applyUpgradeTo: entity => {
+                        var { success, value } = this.baseApplyUpgradeTo(entity, 'healthUp');
+                        if (success) {    
+                            entity.maxHp += value;                         // Increase their max HP
+                            entity.heal(value);
+                        }
+                        return success;
+                    },
+                    isAvailable: entity => {
+                        return true;
+                    },
+                }, 
+                damageUp: {
+                    name: 'Damage Up',
+                    iconPath: 'res/damageUpIcon.png',
+                    hue: 0.14,
+                    saturation: 0,
+                    brightness: 0,
+                    incrementValue: 1,     // HP to increase with each count
+                    maxLevel: 30,           // Max Count
+                    applyUpgradeTo: entity => {
+                        var { success, value } = this.baseApplyUpgradeTo(entity, 'damageUp');
+                        if (success) {
+                            entity.attack.dmg += value;
+                        }
+                        return success;
+                    },
+                    isAvailable: entity => {
+                        return true;
+                    },
+                }, 
+                speedUp: {
+                    name: 'Speed Up',
+                    iconPath: 'res/speedUpIcon.png',
+                    hue: 0.25,
+                    saturation: 0,
+                    brightness: 0,
+                    incrementValue: 0.25,     // HP to increase with each count
+                    maxLevel: 30,           // Max Count
+                    applyUpgradeTo: entity => {
+                        var { success, value } = this.baseApplyUpgradeTo(entity, 'speedUp');
+                        if (success) {
+                            entity.speed += value;
+                        }
+                        return success;
+                    },
+                    isAvailable: entity => {
+                        return true;
+                    },
+                }, 
+                pierceUp: {
+                    name: 'Pierce Up',
+                    iconPath: 'res/pierceUpIcon.png',
+                    hue: 0.75,
+                    saturation: 0,
+                    brightness: 0,
+                    incrementValue: 1,     // HP to increase with each count
+                    maxLevel: 10,           // Max Count
+                    applyUpgradeTo: entity => {
+                        var { success, value } = this.baseApplyUpgradeTo(entity, 'pierceUp');
+                        if (success) {
+                            entity.attack.pierce += value;
+                        }
+                        return success;
+                    },
+                    isAvailable: entity => {
+                        return true;
+                    },
+                },
+                fireRateUp: {
+                    name: 'Fire Rate Up',
+                    iconPath: 'res/fireRateUpIcon.png',
+                    hue: 0.14,
+                    saturation: 0,
+                    brightness: 0,
+                    incrementValue: -2,     // HP to increase with each count
+                    maxLevel: 30,           // Max Count
+                    applyUpgradeTo: entity => {
+                        var { success, value } = this.baseApplyUpgradeTo(entity, 'fireRateUp');
+                        if (success) {
+                            entity.attack.fireRate += value;
+                        }
+                        return success;
+                    },
+                    isAvailable: entity => {
+                        return true;
+                    },
+                }, 
+                rangeUp: {
+                    name: 'Range Up',
+                    iconPath: 'res/rangeUpIcon.png',
+                    hue: 0.4,
+                    saturation: 0,
+                    brightness: 0,
+                    incrementValue: 10,     // HP to increase with each count
+                    maxLevel: 40,           // Max Count
+                    applyUpgradeTo: entity => {
+                        var { success, value } = this.baseApplyUpgradeTo(entity, 'rangeUp');
+                        if (success) {
+                            entity.attack.range += value;
+                        }
+                        return success;
+                    },
+                    isAvailable: entity => {
+                        return true;
+                    },
+                }, 
+                chargeCapacityUp: {
+                    name: 'Charge Capacity Up',
+                    iconPath: 'res/chargeCapacityUpIcon.png',
+                    hue: 0.17,
+                    saturation: 0,
+                    brightness: 0,
+                    incrementValue: 1,     // HP to increase with each count
+                    maxLevel: 40,           // Max Count
+                    applyUpgradeTo: entity => {
+                        var { success, value } = this.baseApplyUpgradeTo(entity, 'chargeCapacityUp');
+                        if (success) {
+                            entity.attack.chargeCapacityUp += value;
+                        }
+                        return success;
+                    },
+                    isAvailable: entity => {
+                        return entity.items.filter(i => i.name === 'Charge').length > 0;
+                    },
+                }, 
+                chargeRateUp: {
+                    name: 'Charge Rate Up',
+                    iconPath: 'res/chargeRateUpIcon.png',
+                    hue: 0.22,
+                    saturation: 0,
+                    brightness: 0,
+                    incrementValue: 0.025,     // HP to increase with each count
+                    maxLevel: 40,           // Max Count
+                    applyUpgradeTo: entity => {
+                        var { success, value } = this.baseApplyUpgradeTo(entity, 'chargeRateUp');
+                        if (success) {
+                            entity.attack.chargeRate += value;
+                        }
+                        return success;
+                    },
+                    isAvailable: entity => {
+                        return entity.items.filter(i => i.name === 'Charge').length > 0;
+                    },
+                }, 
+                maxBulletsUp: {
+                    name: 'Max Bullets Up',
+                    iconPath: 'res/maxBulletsUpIcon.png',
+                    hue: 0.2,
+                    saturation: 0,
+                    brightness: 0,
+                    incrementValue: 1,     // HP to increase with each count
+                    maxLevel: 30,           // Max Count
+                    applyUpgradeTo: entity => {
+                        var { success, value } = this.baseApplyUpgradeTo(entity, 'maxBulletsUp');
+                        if (success) {
+                            entity.attack.maxBullets += value;
+                        }
+                        return success;
+                    },
+                    isAvailable: entity => {
+                        return true;
+                    },
+                }, 
+                luckUp: {
+                    name: 'Luck Up',
+                    iconPath: 'res/luckUpIcon.png',
+                    hue: 0.3,
+                    saturation: 0,
+                    brightness: 0,
+                    incrementValue: 1,     // HP to increase with each count
+                    maxLevel: 30,           // Max Count
+                    applyUpgradeTo: entity => {
+                        var { success, value } = this.baseApplyUpgradeTo(entity, 'luckUp');
+                        if (success) {
+                            entity.luck += value;
+                        }
+                        return success;
+                    },
+                    isAvailable: entity => {
+                        return true;
+                    },
+                }, 
+                dashDurationUp: {
+                    name: 'Dash Duration Up',
+                    iconPath: 'res/dashDurationUpIcon.png',
+                    hue: 0.18,
+                    saturation: 0,
+                    brightness: 0,
+                    incrementValue: 2,     // HP to increase with each count
+                    maxLevel: 30,           // Max Count
+                    applyUpgradeTo: entity => {
+                        var { success, value } = this.baseApplyUpgradeTo(entity, 'dashDurationUp');
+                        if(success) {
+                            entity.sprint.duration += value;
+                        }
+                        return success;
+                    },
+                    isAvailable: entity => {
+                        return entity.items.filter(i => i.name === 'Sprint').length > 0;
+                    },
+                }, 
+                dashCooldownDown: {
+                    name: 'Dash Cooldown Down',
+                    iconPath: 'res/dashCooldownDownIcon.png',
+                    hue: 0.5,
+                    saturation: 0,
+                    brightness: 0,
+                    incrementValue: -4,     // HP to increase with each count
+                    maxLevel: 10,           // Max Count
+                    applyUpgradeTo: entity => {
+                        var { success, value } = this.baseApplyUpgradeTo(entity, 'dashCooldownDown');
+                        if (success) {
+                            entity.sprint.cooldown += value;
+                        }
+                        return success;
+                    },
+                    isAvailable: entity => {
+                        return entity.items.filter(i => i.name === 'Sprint').length > 0;
+                    },
+                }, 
+            },
+        };
+        for (let attribute in base) {
+            this[attribute] = base[attribute];
+        }
+    }
+    baseApplyUpgradeTo(entity, upgradeKey) {
+        var success = false;
+        var value = null;
+        if(entity.upgradeLevels[upgradeKey] < this.upgrades[upgradeKey].maxLevel) {    // If player is not max level
+            entity.upgradeLevels[upgradeKey]++;    // Level up player
+            value = this.upgrades[upgradeKey].incrementValue;               
+            success = true;
+        } 
+        return { success, value };
+    }
+    getUpgradeProgress(entity, upgradeKey) {
+        return Math.min((entity.upgradeLevels[upgradeKey] / this.upgrades[upgradeKey].maxLevel), 1);
+    }
+    generateHtmlForUpgradeOption(upgradeKey, entity) {
+        let upgrade = this.upgrades[upgradeKey];
+        if(!upgrade.applyUpgradeTo) return '';
+        if(!upgrade.isAvailable(entity)) return '';
+        let html = `
+        <div class="upgrade-choice" data-upgrade="${upgrade.name}" data-upgrade-key="${upgradeKey}" onclick="upgrade(event, '${upgradeKey}')">
+            <div class="upgrade-choice-icon">
+                <img src="${upgrade.iconPath}" style="width: 100%;" />
+            </div>
+            <div class="upgrade-choice-name">
+                ${upgrade.name}
+            </div>
+            <div class="upgrade-progress" style="filter: hue-rotate(${upgrade.hue*360}deg);">
+                <img src="res/upgradeCapLeft_2x.png" />
+                <div class="upgrade-progress-container">
+                    <div class="upgrade-progress-bar" style="width: ${this.getUpgradeProgress(entity, upgradeKey)*100}%;"></div>
+                </div>
+                <img src="res/upgradeCapRight_2x.png" />
+            </div>
+        </div>
+        `;
+        return html;
+    }
+    generateHtmlForUpgradeOptions(entity) {
+        let html = '';
+        for(let upgradeKey in this.upgrades) {
+            html += this.generateHtmlForUpgradeOption(upgradeKey, entity);
+        }
+        return html;
+    }
+}
+
+function midPoint(x1, y1, x2, y2) {
+    return { x:(x1+x2)/2, y: (y1+y2)/2 };
+}
+function getPerpOfLine(x1,y1,x2,y2){ // the two points can not be the same
+    var nx = x2 - x1;  // as vector
+    var ny = y2 - y1;
+    const len = Math.sqrt(nx * nx + ny * ny);  // length of line
+    nx /= len;  // make one unit long
+    ny /= len;  // which we call normalising a vector
+    return { x: nx, y: -ny }; // return the normal  rotated 90 deg
+}
+function isLeft(a, b, c)
+{
+     return ((b.x - a.x)*(c.y - a.y) - (b.y - a.y)*(c.x - a.x)) > 0;
 }
