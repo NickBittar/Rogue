@@ -235,11 +235,11 @@ function tick() {
 		}
 
 		// Check if player is hit
-		if (game.frame % (10 + player.luck) === 0) {
+		if (!game.debug && game.frame % (10 + player.luck) === 0) {
 			for(let enemy of map.enemies) {
 				if (checkIntersection(enemy, player)) {
 					if (player.hp > 0) {
-						// player.hp -= 5;
+						player.hp -= 5;
 					} else {
 						player.dead = true;
 						player.controls.left = player.controls.up = player.controls.right = player.controls.down = false;
